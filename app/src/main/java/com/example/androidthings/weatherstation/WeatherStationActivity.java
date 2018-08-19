@@ -20,6 +20,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -33,6 +34,11 @@ import android.view.KeyEvent;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 
+//import com.example.androidthings.sensorhub.collector.Bmx280Collector;
+//import com.example.androidthings.sensorhub.collector.MotionCollector;
+import com.example.androidthings.weatherstation.iotcore.Bmx280Collector;
+import com.example.androidthings.weatherstation.iotcore.MotionCollector;
+
 import com.google.android.things.contrib.driver.apa102.Apa102;
 import com.google.android.things.contrib.driver.bmx280.Bmx280SensorDriver;
 import com.google.android.things.contrib.driver.button.Button;
@@ -42,9 +48,15 @@ import com.google.android.things.contrib.driver.pwmspeaker.Speaker;
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.PeripheralManager;
 
+import com.example.androidthings.weatherstation.iotcore.*;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 public class WeatherStationActivity extends Activity {
+
+    // added by masa hanada 2018/8/15
+    private static final String CONFIG_SHARED_PREFERENCES_KEY = "cloud_iot_config";
+    private SensorHub sensorHub;
 
     private static final String TAG = WeatherStationActivity.class.getSimpleName();
 
@@ -290,7 +302,9 @@ public class WeatherStationActivity extends Activity {
                 Log.e(TAG, "error creating pubsub publisher", e);
             }
         }
+
     }
+
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -427,4 +441,74 @@ public class WeatherStationActivity extends Activity {
             Log.e(TAG, "Error setting ledstrip", e);
         }
     }
+
+
+    // added by masa hanada 2018/8/15
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
+        SharedPreferences prefs = getSharedPreferences(CONFIG_SHARED_PREFERENCES_KEY, MODE_PRIVATE);
+        Parameters params = readParameters(prefs, getIntent().getExtras());
+        if (params != null) {
+            params.saveToPreferences(prefs);
+            initializeHub(params);
+        }
+    }
+
+    // added by masa hanada 2018/8/15
+    private void initializeHub(Parameters params) {
+        if (sensorHub != null) {
+            sensorHub.stop();
+        }
+
+        Log.i(TAG, "Initialization parameters:\n" +
+                "   Project ID: " + params.getProjectId() + "\n" +
+                "    Region ID: " + params.getCloudRegion() + "\n" +
+                "  Registry ID: " + params.getRegistryId() + "\n" +
+                "    Device ID: " + params.getDeviceId() + "\n" +
+                "Key algorithm: " + params.getKeyAlgorithm());
+
+        sensorHub = new SensorHub(params);
+        sensorHub.registerSensorCollector(new Bmx280Collector(
+                BoardDefaults.getI2cBus()));
+        sensorHub.registerSensorCollector(new MotionCollector(
+                BoardDefaults.getI2cBus()));
+
+        try {
+            sensorHub.start();
+        } catch (GeneralSecurityException | IOException e) {
+            Log.e(TAG, "Cannot load keypair", e);
+        }
+
+    }
+
+    // added by masa hanada 2018/8/15
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+        if (sensorHub != null) {
+            sensorHub.stop();
+        }
+    }
+
+    // added by masa hanada 2018/8/15
+    private Parameters readParameters(SharedPreferences prefs, Bundle extras) {
+        Parameters params = Parameters.from(prefs, extras);
+        if (params == null) {
+            String validAlgorithms = String.join(",",
+                    AuthKeyGenerator.SUPPORTED_KEY_ALGORITHMS);
+            Log.w(TAG, "Postponing initialization until enough parameters are set. " +
+                    "Please configure via intent, for example: \n" +
+                    "adb shell am start " +
+                    "-e project_id <PROJECT_ID> -e cloud_region <REGION> " +
+                    "-e registry_id <REGISTRY_ID> -e device_id <DEVICE_ID> " +
+                    "[-e key_algorithm <one of " + validAlgorithms + ">] " +
+                    getPackageName() + "/." +
+                    getLocalClassName() + "\n");
+        }
+        return params;
+    }
+
 }

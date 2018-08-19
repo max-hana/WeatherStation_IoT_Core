@@ -38,6 +38,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    /* added for lambda support by masa hanada 2018/8/15 */
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
 }
 
 dependencies {
@@ -50,6 +55,8 @@ dependencies {
     implementation 'com.google.android.things.contrib:driver-ht16k33:1.0'
     implementation 'com.google.android.things.contrib:driver-apa102:1.0'
     implementation 'com.google.android.things.contrib:driver-pwmspeaker:1.0'
+
+    implementation 'com.google.android.things:cloud-iot-core:1.0.0'
 
     implementation('com.google.api-client:google-api-client-android:1.22.0') {
         exclude group: 'org.apache.httpcomponents'

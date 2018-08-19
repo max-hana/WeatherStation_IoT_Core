@@ -1,7 +1,12 @@
-# Weather Station
+# Weather Station for IoT Core
 
-This sample integrates multiple Android Things peripheral drivers together to
-build a connected Weather Station.
+This project is made from the AndroidThings sample project, Weather Station hosted [here](https://github.com/AndroidThings/).
+
+These are the only differences:
+- Sends data to IoT Core instead of PubSub.
+- Works even without a monitor on HDMI
+- Tested only with Raspberry Pi 3B with RaibowHat.
+
 
 ## Screenshots
 
