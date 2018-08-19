@@ -1,6 +1,6 @@
 # Weather Station for IoT Core
 
-This project is made from the AndroidThings sample project, Weather Station hosted [here](https://github.com/AndroidThings/).
+This project is made from the AndroidThings sample project "Weather Station" hosted [here](https://github.com/AndroidThings/).
 
 These are the only differences:
 - Sends data to IoT Core instead of PubSub.
