@@ -5,7 +5,7 @@ This project is made from the AndroidThings sample project "Weather Station" hos
 These are the only differences:
 - Sends data to IoT Core instead of PubSub.
 - Works even without a monitor on HDMI
-- Tested only with Raspberry Pi 3B with RaibowHat.
+- Tested only with Raspberry Pi 3B with RainbowHat.
 
 
 ## Screenshots
@@ -49,9 +49,9 @@ If you have everything set up correctly:
 - If the button is pressed, the display will show the current pressure.
 - If a Piezo Buzzer is connected, it will plays a funny sound on startup.
 - If a APA102 RGB Led strip is connected, it will display a rainbow of 7 pixels indicating the current pressure.
-- If a Google Cloud Platform project is configured (see instruction below), it will publish the sensor data to Google Cloug PubSub.
+- If a Google Cloud Platform project is configured (see instruction below), it will publish the sensor data to Google Cloud PubSub.
 
-## Google Cloud Platform configuration (optional)
+## Google Cloud Platform Pub/Sub configuration (optional)
 
 1. Go to your project in the [Google Cloud Platform console](https://console.cloud.google.com/)
 1. Under *API Manager*, enable the following APIs: Cloud Pub/Sub
@@ -66,8 +66,51 @@ After running the sample, you can check that your data is ingested in Google Clo
 gcloud --project <CLOUD_PROJECT_ID> beta pubsub subscriptions pull <PULL_SUBSCRIBTION_NAME>
 ```
 
-Note: If there is no `credentials.json` file in `app/src/main/res/raw`, the app will
- run offline and will not send sensor data to the [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/).
+Note: If there is no `credentials.json` file in `app/src/main/res/raw`, the app will run offline and will not send sensor data to the [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/).
+
+
+## Create a public key for Iot Core (optional)
+
+When the app is started without any intent information of IoT Core, it just creates a pair of keys and stores the public key to "/sdcard/rpi3_pub.pem" for the later use of device registration in IoT Core.
+
+```
+adb shell am start com.example.androidthings.weatherstation/.WeatherStationActivity
+```
+
+Note: If there is no `rpi3_pub.pem` file in `/sdcard/`, the app will regenerate its private key and stores the corresponding public key in the same filename.
+
+You can easily copy the public key to local by the following command:
+
+```
+adb shell pull /sdcard/rpi3_pub.pem
+```
+
+
+## Register the device to Iot Core (optional)
+
+Now with `rpi3_pub.pem` file, you can register your device to Cloud IoT Core:
+
+```
+gcloud iot devices create <DEVICE_ID> --project=<PROJECT_ID> --region=<CLOUD_REGION> --registry=<REGISTRY_ID> --public-key path=rpi3_pub.pem ,type=<CERTIFICATE_TYPE>
+```
+
+Where:
+- `DEVICE_ID`: your device ID (it can be anything that identifies the device for you)
+- `PROJECT_ID`: your Cloud IoT Core project id
+- `CLOUD_REGION`: the cloud region for project registry
+- `REGISTRY_ID`: the registry name where this device should be registered
+- `CERTIFICATE_TYPE`: at this moment choose "rsa-x509-pem" instead of "es256-x509-pem", since your device key algorithm is fixed to "RSA" not "EC".
+
+## Configure the device for IoT Core (optional)
+
+Now that your device's public key is registered, you can start the device app so that it can securely connect to Cloud IoT Core:
+
+```
+adb shell am start -e project_id <PROJECT_ID> -e cloud_region <CLOUD_REGION> -e registry_id <REGISTRY_ID> -e device_id <DEVICE_ID>  com.example.androidthings.sensorhub/.SensorHubActivity
+```
+Where PROJECT_ID, CLOUD_REGION, REGISTRY_ID and DEVICE_ID must be the
+corresponding values used to register the device on Cloud IoT Core
+
 
 ## Next steps
 

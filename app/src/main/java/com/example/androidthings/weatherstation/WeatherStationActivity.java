@@ -233,6 +233,7 @@ public class WeatherStationActivity extends Activity {
         try {
             mLedstrip = new Apa102(BoardDefaults.getSpiBus(), Apa102.Mode.BGR);
             mLedstrip.setBrightness(LEDSTRIP_BRIGHTNESS);
+            mLedstrip.write(new int[7]); // just clear all and dim down
             for (int i = 0; i < mRainbow.length; i++) {
                 float[] hsv = {i * 360.f / mRainbow.length, 1.0f, 1.0f};
                 mRainbow[i] = Color.HSVToColor(255, hsv);
@@ -264,7 +265,9 @@ public class WeatherStationActivity extends Activity {
                 public void onAnimationUpdate(ValueAnimator animation) {
                     try {
                         float v = (float) animation.getAnimatedValue();
-                        mSpeaker.play(v);
+                        if (BuildConfig.DEBUG) {
+                            mSpeaker.play(v);
+                        }
                     } catch (IOException e) {
                         throw new RuntimeException("Error sliding speaker", e);
                     }
@@ -274,7 +277,9 @@ public class WeatherStationActivity extends Activity {
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     try {
-                        mSpeaker.stop();
+                        if (BuildConfig.DEBUG) {
+                            mSpeaker.stop();
+                        }
                     } catch (IOException e) {
                         throw new RuntimeException("Error sliding speaker", e);
                     }
@@ -447,11 +452,11 @@ public class WeatherStationActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume");
+        Log.d(TAG, "onResume----------------------------------------------------------------------");
         SharedPreferences prefs = getSharedPreferences(CONFIG_SHARED_PREFERENCES_KEY, MODE_PRIVATE);
         Parameters params = readParameters(prefs, getIntent().getExtras());
         if (params != null) {
-            params.saveToPreferences(prefs);
+            // params.saveToPreferences(prefs); // Uncomment if you want to store params locally
             initializeHub(params);
         }
     }
@@ -493,6 +498,15 @@ public class WeatherStationActivity extends Activity {
         }
     }
 
+    private void generateKeys(){
+        AuthKeyGenerator keyGenerator = null;
+        try {
+            keyGenerator = new AuthKeyGenerator("RSA"); // stick to RSA instead of params.getKeyAlgorithm()
+        } catch (GeneralSecurityException | IOException e) {
+            throw new IllegalArgumentException("Cannot create a key generator", e);
+        }
+    }
+
     // added by masa hanada 2018/8/15
     private Parameters readParameters(SharedPreferences prefs, Bundle extras) {
         Parameters params = Parameters.from(prefs, extras);
@@ -504,9 +518,10 @@ public class WeatherStationActivity extends Activity {
                     "adb shell am start " +
                     "-e project_id <PROJECT_ID> -e cloud_region <REGION> " +
                     "-e registry_id <REGISTRY_ID> -e device_id <DEVICE_ID> " +
-                    "[-e key_algorithm <one of " + validAlgorithms + ">] " +
+                    //"[-e key_algorithm <one of " + validAlgorithms + ">] " +
                     getPackageName() + "/." +
                     getLocalClassName() + "\n");
+            this.generateKeys(); // Want to generate keys if not already.
         }
         return params;
     }
