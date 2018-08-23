@@ -21,6 +21,7 @@ import android.util.Log;
 
 //import com.example.androidthings.sensorhub.SensorData;
 import com.example.androidthings.weatherstation.SensorData;
+import com.example.androidthings.weatherstation.WeatherStationActivity;
 import com.google.android.things.contrib.driver.bmx280.Bmx280;
 
 import java.io.IOException;
@@ -31,9 +32,12 @@ public class Bmx280Collector implements SensorCollector {
 
     private static final String TAG = Bmx280Collector.class.getSimpleName();
 
-    private static final String SENSOR_TEMPERATURE = "temperature";
-    private static final String SENSOR_HUMIDITY = "humidity";
-    private static final String SENSOR_PRESSURE = "ambient_pressure";
+//    private static final String SENSOR_TEMPERATURE = "temperature";
+//    private static final String SENSOR_HUMIDITY = "humidity";
+//    private static final String SENSOR_PRESSURE = "ambient_pressure";
+    private static final String SENSOR_TEMPERATURE = "temp";
+    private static final String SENSOR_HUMIDITY = "humi";
+    private static final String SENSOR_PRESSURE = "pressure";
 
     private boolean isTemperatureEnabled;
     private boolean isPressureEnabled;
@@ -152,6 +156,15 @@ public class Bmx280Collector implements SensorCollector {
     @Override
     public void collectRecentReadings(List<SensorData> output) {
         if (bmx280 == null) {
+            // feed data from WeatherStationActivity hack by hanada
+            long now = System.currentTimeMillis();
+            if (isEnabled(SENSOR_TEMPERATURE)) {
+                output.add(new SensorData(now, SENSOR_TEMPERATURE, WeatherStationActivity.mLastTemperature));
+            } else if (isEnabled(SENSOR_PRESSURE)) {
+                output.add(new SensorData(now, SENSOR_PRESSURE, WeatherStationActivity.mLastPressure));
+            } else if (isEnabled(SENSOR_HUMIDITY)) {
+                output.add(new SensorData(now, SENSOR_HUMIDITY, WeatherStationActivity.mLastHumidity));
+            }
             return;
         }
         try {

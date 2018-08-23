@@ -85,8 +85,11 @@ public class WeatherStationActivity extends Activity {
     private int SPEAKER_READY_DELAY_MS = 300;
     private Speaker mSpeaker;
 
-    private float mLastTemperature;
-    private float mLastPressure;
+//    private float mLastTemperature;
+//    private float mLastPressure;
+    public static float mLastTemperature;
+    public static float mLastPressure;
+    public static float mLastHumidity; // added by hanada
 
     private PubsubPublisher mPubsubPublisher;
     private ImageView mImageView;
@@ -137,6 +140,14 @@ public class WeatherStationActivity extends Activity {
                     mSensorManager.registerListener(mPubsubPublisher.getPressureListener(), sensor,
                             SensorManager.SENSOR_DELAY_NORMAL);
                 }
+            }else if (sensor.getType() == Sensor.TYPE_RELATIVE_HUMIDITY) {
+                // Our sensor is connected. Start receiving pressure data.
+                mSensorManager.registerListener(mHumidityListener, sensor,
+                        SensorManager.SENSOR_DELAY_NORMAL);
+                if (mPubsubPublisher != null) {
+                    mSensorManager.registerListener(mPubsubPublisher.getPressureListener(), sensor,
+                            SensorManager.SENSOR_DELAY_NORMAL);
+                }
             }
         }
 
@@ -151,7 +162,7 @@ public class WeatherStationActivity extends Activity {
         @Override
         public void onSensorChanged(SensorEvent event) {
             mLastTemperature = event.values[0];
-            Log.d(TAG, "sensor changed: " + mLastTemperature);
+            Log.d(TAG, "Temp sensor changed: " + mLastTemperature);
             if (mDisplayMode == DisplayMode.TEMPERATURE) {
                 updateDisplay(mLastTemperature);
             }
@@ -173,6 +184,20 @@ public class WeatherStationActivity extends Activity {
                 updateDisplay(mLastPressure);
             }
             updateBarometer(mLastPressure);
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            Log.d(TAG, "accuracy changed: " + accuracy);
+        }
+    };
+
+    // Callback when SensorManager delivers relative humidity data.
+    private SensorEventListener mHumidityListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            mLastHumidity = event.values[0];
+            Log.d(TAG, "Humidity sensor changed: " + mLastHumidity);
         }
 
         @Override
@@ -208,15 +233,15 @@ public class WeatherStationActivity extends Activity {
         // the pins a certain way; this may be necessary if the default address conflicts with
         // another peripheral's. In our case, the temperature sensor and the display have
         // different default addresses, so everything just works.
-        try {
-            mEnvironmentalSensorDriver = new Bmx280SensorDriver(BoardDefaults.getI2cBus());
-            mSensorManager.registerDynamicSensorCallback(mDynamicSensorCallback);
-            mEnvironmentalSensorDriver.registerTemperatureSensor();
-            mEnvironmentalSensorDriver.registerPressureSensor();
-            Log.d(TAG, "Initialized I2C BMP280");
-        } catch (IOException e) {
-            throw new RuntimeException("Error initializing BMP280", e);
-        }
+//        try {
+//            mEnvironmentalSensorDriver = new Bmx280SensorDriver(BoardDefaults.getI2cBus());
+//            mSensorManager.registerDynamicSensorCallback(mDynamicSensorCallback);
+//            mEnvironmentalSensorDriver.registerTemperatureSensor();
+//            mEnvironmentalSensorDriver.registerPressureSensor();
+//            Log.d(TAG, "Initialized I2C BMP280");
+//        } catch (IOException e) {
+//            throw new RuntimeException("Error initializing BMP280", e);
+//        }
 
         try {
             mDisplay = new AlphanumericDisplay(BoardDefaults.getI2cBus());
