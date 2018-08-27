@@ -55,6 +55,7 @@ public class Bmx280Collector implements SensorCollector {
         this.isTemperatureEnabled = true;
         this.isPressureEnabled = true;
         this.isHumidityEnabled = true;
+        //this.isHumidityAvailable = true;
     }
 
     @Override
