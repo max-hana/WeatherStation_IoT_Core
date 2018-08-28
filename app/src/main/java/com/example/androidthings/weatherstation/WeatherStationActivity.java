@@ -233,15 +233,15 @@ public class WeatherStationActivity extends Activity {
         // the pins a certain way; this may be necessary if the default address conflicts with
         // another peripheral's. In our case, the temperature sensor and the display have
         // different default addresses, so everything just works.
-//        try {
-//            mEnvironmentalSensorDriver = new Bmx280SensorDriver(BoardDefaults.getI2cBus());
-//            mSensorManager.registerDynamicSensorCallback(mDynamicSensorCallback);
-//            mEnvironmentalSensorDriver.registerTemperatureSensor();
-//            mEnvironmentalSensorDriver.registerPressureSensor();
-//            Log.d(TAG, "Initialized I2C BMP280");
-//        } catch (IOException e) {
-//            throw new RuntimeException("Error initializing BMP280", e);
-//        }
+        try {
+            mEnvironmentalSensorDriver = new Bmx280SensorDriver(BoardDefaults.getI2cBus());
+            mSensorManager.registerDynamicSensorCallback(mDynamicSensorCallback);
+            mEnvironmentalSensorDriver.registerTemperatureSensor();
+            mEnvironmentalSensorDriver.registerPressureSensor();
+            Log.d(TAG, "Initialized I2C BMP280");
+        } catch (IOException e) {
+            throw new RuntimeException("Error initializing BMP280", e);
+        }
 
         try {
             mDisplay = new AlphanumericDisplay(BoardDefaults.getI2cBus());

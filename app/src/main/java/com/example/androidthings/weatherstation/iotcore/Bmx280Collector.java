@@ -74,6 +74,7 @@ public class Bmx280Collector implements SensorCollector {
             return true;
         } catch (Throwable t) {
             Log.i(TAG, "Could not initialize BMx280 sensor on I2C bus " + i2cBus, t);
+            bmx280 = null; // switch to backup
         }
         return false;
     }
