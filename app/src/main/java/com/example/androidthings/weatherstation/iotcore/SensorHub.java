@@ -77,6 +77,7 @@ public class SensorHub {
 
     private Parameters params;
     private IotCoreClient iotCoreClient;
+    private String deviceId; // added by hanada
 
     private AtomicBoolean ready;
 
@@ -87,8 +88,12 @@ public class SensorHub {
         this.stateUpdatesPerHour = DEFAULT_STATE_UPDATES_PER_HOUR;
         this.params = params;
         this.collectors = new ArrayList<>();
+        this.deviceId = this.params.getDeviceId();
     }
 
+    public String getDeviceId(){
+        return deviceId;
+    }
 
     /**
      * Register a sensor collector. When the SensorHub is started, it will fetch sensor readings
@@ -220,7 +225,8 @@ public class SensorHub {
     }
 
     private void publishTelemetry(List<SensorData> currentReadings) {
-        String payload = MessagePayload.createTelemetryMessagePayload(currentReadings);
+        // String payload = MessagePayload.createTelemetryMessagePayload(currentReadings);
+        String payload = MessagePayload.createTelemetryMessagePayload_FLAT(currentReadings, getDeviceId());
         Log.d(TAG, "Publishing telemetry: " + payload);
         if (iotCoreClient == null) {
             Log.w(TAG, "Ignoring sensor readings because IotCoreClient is not yet active.");
