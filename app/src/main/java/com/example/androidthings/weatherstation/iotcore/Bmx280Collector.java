@@ -54,7 +54,7 @@ public class Bmx280Collector implements SensorCollector {
         // setEnabled before activate.
         this.isTemperatureEnabled = true;
         this.isPressureEnabled = true;
-        this.isHumidityEnabled = true;
+        this.isHumidityEnabled = false;
     }
 
     @Override
@@ -160,9 +160,11 @@ public class Bmx280Collector implements SensorCollector {
             long now = System.currentTimeMillis();
             if (isEnabled(SENSOR_TEMPERATURE)) {
                 output.add(new SensorData(now, SENSOR_TEMPERATURE, WeatherStationActivity.mLastTemperature));
-            } else if (isEnabled(SENSOR_PRESSURE)) {
+            }
+            if (isEnabled(SENSOR_PRESSURE)) {
                 output.add(new SensorData(now, SENSOR_PRESSURE, WeatherStationActivity.mLastPressure));
-            } else if (isEnabled(SENSOR_HUMIDITY)) {
+            }
+            if (isEnabled(SENSOR_HUMIDITY)) {
                 output.add(new SensorData(now, SENSOR_HUMIDITY, WeatherStationActivity.mLastHumidity));
             }
             return;
