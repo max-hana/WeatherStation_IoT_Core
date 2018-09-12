@@ -104,9 +104,9 @@ public class Parameters {
     public static Parameters from(@NonNull SharedPreferences prefs, @Nullable Bundle bundle) {
         Parameters params = new Parameters();
         params.projectId = prefs.getString("project_id", null);
-        params.registryId = prefs.getString("registry_id", null);
-        params.cloudRegion = prefs.getString("cloud_region", null);
-        params.deviceId = prefs.getString("device_id", null);
+        params.registryId = prefs.getString("registry_id", "Handson");
+        params.cloudRegion = prefs.getString("cloud_region", "asia-east1");
+        params.deviceId = prefs.getString("device_id", "iot_rpi3");
         params.keyAlgorithm = prefs.getString("key_algorithm", null);
         if (bundle != null) {
             params.projectId = bundle.getString("project_id", params.projectId);
